@@ -76,13 +76,15 @@ class MLP_Two_Layers:
         b2 = self.parameters['b2']  # (1,n_y)
 
         Z1 = np.dot(W1, X) + b1  # (n_h,n_x)*(n_x,m) + (n_h,1)
-        A1 = np.tanh(Z1)  # apply tanh activation                                                #(n_h,m)
+
+        # Here we apply the tanh function which is suitable for hidden layers because it computes
+        # more symmetric gradient values. Not be used for large networks as it is computationally expensive
+        A1 = np.tanh(Z1)  # apply tanh activation   #(n_h,m)
         Z2 = np.dot(W2, A1) + b2
 
-        if self.full_Y.shape[0] == 1:  # (n_y,n_h)*(n_h,m) + (n_y,1)
-            A2 = 1 / (1 + np.exp(-Z2))  # apply sigmoid activation   #(n_y,m)
-        else:
-            A2 = np.exp(Z2) / np.sum(np.exp(Z2), axis=0, keepdims=True)  # apply softmax activation
+        # For the final output we apply the sigmoid activation because it computes
+        # probabilites for the predicted target between 0 and 1.
+        A2 = 1 / (1 + np.exp(-Z2))  # apply sigmoid activation   #(n_y,m)
 
         self.cache = {"Z1": Z1,
                       "A1": A1,
@@ -108,12 +110,7 @@ class MLP_Two_Layers:
 
         m = Y.shape[1]  # number of examples
 
-        if Y.shape[0] == 1:
-            cost = np.sum(((- np.log(A2)) * Y + (-np.log(1 - A2)) * (1 - Y))) / m  # compute cost
-        else:
-            loss_each_example = -np.sum(Y * np.log(A2), axis=1)
-            all_losses = np.sum(loss_each_example)
-            cost = all_losses / m
+        cost = np.sum(((- np.log(A2)) * Y + (-np.log(1 - A2)) * (1 - Y))) / m  # compute cost
 
         return cost
 
@@ -282,9 +279,6 @@ class MLP_Two_Layers:
 
         A2 = self.forward(X)
 
-        if A2.shape[0] == 1:
-            predictions = A2[0] > 0.5
-        else:
-            predictions = (A2 == np.max(A2, axis=0)).astype(bool).T
+        predictions = A2[0] > 0.5
 
         return predictions
