@@ -77,9 +77,15 @@ class MLP_Two_Layers:
 
         Z1 = np.dot(W1, X) + b1  # (n_h,n_x)*(n_x,m) + (n_h,1)
 
-        # Here we apply the tanh function which is suitable for hidden layers because it computes
-        # more symmetric gradient values. Not be used for large networks as it is computationally expensive
+        # We apply the tanh function (with range [-1,1] vs [0,1] of the sigmoid function)
+        # which is suitable for hidden layers because it computes more symmetric
+        # gradient values and can prevent vanishing gradients problems.
+        # Not ideal for large networks as a quick plateau of
+        # values to -1 and 1, may lead to vanishing gradient problems (the derivative would be very close to 0
+        # can make it harder for the optimization algorithm to make significant updates to the weights in the network)
         A1 = np.tanh(Z1)  # apply tanh activation   #(n_h,m)
+
+
         Z2 = np.dot(W2, A1) + b2
 
         # For the final output we apply the sigmoid activation because it computes
